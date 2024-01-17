@@ -28,10 +28,10 @@
 //     res.json(notes);
 //   } catch (err) {
 //     console.error(err);
-//     res.status(500).send('Error reading notes'); 
+//     res.status(500).send('Error reading notes');
 //   }
 // });
-  
+
 // // To add new note
 //   app.post("/api/notes", async (req, res) => {
 //   try {
@@ -54,76 +54,74 @@
 // app.listen(PORT, () => {
 //   console.log(`Server listening on http://localhost:${PORT} `);
 // });
-const express = require('express');
-// const fs = require('fs');
-const fsp = require('fs').promises;
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const dbFile = './db/db.json';
+
+// Import libraries and define variables
+const express = require("express");
+const fsp = require("fs").promises;
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
+const dbFile = "./db/db.json";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static("public"));
 
 // Read notes from db.json file
-const readNotes = async() => {
+const readNotes = async () => {
   try {
-    const data = await fsp.readFile(dbFile, 'utf8');
+    const data = await fsp.readFile(dbFile, "utf8");
     return JSON.parse(data);
   } catch (err) {
     console.error(`Error reading ${dbFile}`, err);
     throw err;
   }
-}
+};
 
 // Write notes to db.json file
-const writeNotes = async(notes) => {
+const writeNotes = async (notes) => {
   try {
     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
   } catch (err) {
     console.error(`Error writing ${dbFile}`, err);
     throw err;
   }
-}
+};
 
-// To return notes JSON data
-app.get('/api/notes', async (req, res) => {
+// To return notes from db
+app.get("/api/notes", async (req, res) => {
   try {
     const notes = await readNotes();
     res.json(notes);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error reading notes'); 
+    res.status(500).send("Error reading notes");
   }
 });
-  
-// To add new note
+
+// To post a new note to db
 app.post("/api/notes", async (req, res) => {
   try {
     const { title, text } = req.body;
 
     if (!title || !text) {
-    return res.status(400).json({ error: 'Title and content are required.' });
+      return res.status(400).json({ error: "Title and content are required." });
     }
 
-  // Generate a unique ID for the new note
+    // Generate a unique ID for the new note
     const newNote = {
-    title,
-    text,
-    id: uuidv4()
+      title,
+      text,
+      id: uuidv4(),
     };
 
-  // Get existing notes and add the new one
+    // Get existing notes, add the new one, write to db.json
     const notes = await readNotes();
     notes.push(newNote);
-
-  // Save the updated notes to db.json
     await writeNotes(notes);
-
-  // Respond with the new note
     res.json(newNote);
   } catch (err) {
     console.error(err);
@@ -132,13 +130,13 @@ app.post("/api/notes", async (req, res) => {
 });
 
 // To serve notes.html
-app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/notes.html'));
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/notes.html"));
 });
 
 // To serve index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
 app.listen(PORT, () => {
