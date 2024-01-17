@@ -55,14 +55,14 @@
 //   console.log(`Server listening on http://localhost:${PORT} `);
 // });
 const express = require('express');
-const fs = require('fs');
+// const fs = require('fs');
 const fsp = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const dbFile = './db/db.json';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -105,9 +105,9 @@ app.post("/api/notes", async (req, res) => {
   try {
     const { title, text } = req.body;
 
-    // if (!title || !content) {
-    // return res.status(400).json({ error: 'Title and content are required.' });
-    // }
+    if (!title || !text) {
+    return res.status(400).json({ error: 'Title and content are required.' });
+    }
 
   // Generate a unique ID for the new note
     const newNote = {
@@ -118,7 +118,6 @@ app.post("/api/notes", async (req, res) => {
 
   // Get existing notes and add the new one
     const notes = await readNotes();
-    console.log(newNote);
     notes.push(newNote);
 
   // Save the updated notes to db.json
