@@ -57,6 +57,7 @@
 
 // Import libraries and define variables
 const express = require("express");
+const fs = require("fs");
 const fsp = require("fs").promises;
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
@@ -137,6 +138,27 @@ app.get("/notes", (req, res) => {
 // To serve index.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+// Delete note handler
+app.delete("/api/notes/:id", async (req, res) => {
+  const noteId = req.params.id;
+  try {
+    const data = await fsp.readFile(dbFile);
+    const notes = JSON.parse(data);
+
+    const noteIndex = notes.findIndex((note) => note.id === noteId);
+
+    if (noteIndex !== -1) {
+      notes.splice(noteIndex, 1);
+      await writeNotes(notes);
+    } else {
+      res.status(404).json({ error: "Note not found" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error deleting note" });
+  }
 });
 
 app.listen(PORT, () => {
