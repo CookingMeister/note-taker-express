@@ -55,7 +55,6 @@
 //   console.log(`Server listening on http://localhost:${PORT} `);
 // });
 
-// Import libraries and define variables
 const express = require("express");
 const fs = require("fs");
 const { get } = require("http");
@@ -87,12 +86,21 @@ const readNotes = async () => {
 const writeNotes = async (notes) => {
   try {
     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
-    console.log("Note added!");
+    console.log("Notes saved to file");
   } catch (err) {
     console.error(`Error writing ${dbFile}`, err);
     throw err;
   }
 };
+
+// const writeNotes = async (notes) => {
+//   try {
+//     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
+//   } catch (err) {
+//     console.error(`Error writing ${dbFile}`, err);
+//     throw err;
+//   }
+// };
 
 // Route functions
 const addNote = async (req, res) => {
@@ -100,42 +108,47 @@ const addNote = async (req, res) => {
     const { title, text } = req.body;
 
     if (!title || !text) {
-      return res.status(400).json({ error: "Title and content are required." });
+      return res.status(400).send("Title and content are required.");
     }
-
     // Generate a unique ID for the new note
     const newNote = {
       title,
       text,
       id: uuidv4(),
     };
-
     // Get existing notes, add the new one, write to db.json
     const notes = await readNotes();
     notes.push(newNote);
     await writeNotes(notes);
     res.json(newNote);
   } catch (err) {
-    console.error(err);
+    // error handling
+    console.error("Error adding note", err);
     res.status(500).send("Error adding note");
+    throw err;
   }
 };
 
 const getNotes = (req, res) => {
   res.sendFile(path.join(__dirname, "public/notes.html"));
 };
+// Read notes from db.json file
 const getApiNotes = async (req, res) => {
   try {
     const notes = await readNotes();
     res.json(notes);
   } catch (err) {
-    console.error(err);
+    // error handling
+    console.error("Error reading notes", err);
     res.status(500).send("Error reading notes");
+    throw err;
   }
 };
+
 const getIndex = (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 };
+
 const deleteNote = async (req, res) => {
   const noteId = req.params.id;
   try {
@@ -150,27 +163,25 @@ const deleteNote = async (req, res) => {
     // await writeNotes(notes);
     // } else {
     // res.status(404).json({ error: "Note not found" });
+    console.log("Note deleted successfully");
   } catch (err) {
+    // error handling
     console.error(err);
-    res.status(500).json({ error: "Error deleting note" });
+    res.status(500).send("Error deleting note");
+    throw err;
   }
   res.redirect("/api/notes");
 };
 
-// To return notes from db
-app.get("/api/notes", getApiNotes);
+app.get("/notes", getNotes); // GET notes
 
-// To post a new note to db
-app.post("/api/notes", addNote);
+app.get("/api/notes", getApiNotes); // GET API notes
 
-// To serve notes.html
-app.get("/notes", getNotes);
+app.post("/api/notes", addNote); // POST new note
 
-// To serve index.html
-app.get("*", getIndex);
+app.delete("/api/notes/:id", deleteNote); // DELETE note by id
 
-// Delete note request
-app.delete("/api/notes/:id", deleteNote);
+app.get("/*", getIndex); // GET catch-all route at end to avoid conflicts
 
 // Create server
 app.listen(PORT, () => {
