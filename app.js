@@ -86,6 +86,7 @@ const readNotes = async () => {
 const writeNotes = async (notes) => {
   try {
     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
+    console.log("Note added!");
   } catch (err) {
     console.error(`Error writing ${dbFile}`, err);
     throw err;
@@ -145,20 +146,23 @@ app.delete("/api/notes/:id", async (req, res) => {
   const noteId = req.params.id;
   try {
     const data = await fsp.readFile(dbFile);
-    const notes = JSON.parse(data);
+    let notes = JSON.parse(data);
+    console.log(notes);
+    notes = notes.filter((note) => note.id !== noteId);
+    console.log(notes);
+    await writeNotes(notes);
+    // const noteIndex = notes.findIndex((note) => note.id === noteId);
 
-    const noteIndex = notes.findIndex((note) => note.id === noteId);
-
-    if (noteIndex !== -1) {
-      notes.splice(noteIndex, 1);
-      await writeNotes(notes);
-    } else {
-      res.status(404).json({ error: "Note not found" });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error deleting note" });
+    // if (noteIndex !== -1) {
+      // notes.splice(noteIndex, 1);
+      // await writeNotes(notes);
+    // } else {
+      // res.status(404).json({ error: "Note not found" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error deleting note" });
   }
+  res.redirect("/api/notes");
 });
 
 app.listen(PORT, () => {
