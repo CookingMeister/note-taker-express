@@ -58,6 +58,7 @@
 // Import libraries and define variables
 const express = require("express");
 const fs = require("fs");
+const { get } = require("http");
 const fsp = require("fs").promises;
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
@@ -93,19 +94,8 @@ const writeNotes = async (notes) => {
   }
 };
 
-// To return notes from db
-app.get("/api/notes", async (req, res) => {
-  try {
-    const notes = await readNotes();
-    res.json(notes);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error reading notes");
-  }
-});
-
-// To post a new note to db
-app.post("/api/notes", async (req, res) => {
+// Route functions
+const addNote = async (req, res) => {
   try {
     const { title, text } = req.body;
 
@@ -129,42 +119,60 @@ app.post("/api/notes", async (req, res) => {
     console.error(err);
     res.status(500).send("Error adding note");
   }
-});
+};
 
-// To serve notes.html
-app.get("/notes", (req, res) => {
+const getNotes = (req, res) => {
   res.sendFile(path.join(__dirname, "public/notes.html"));
-});
-
-// To serve index.html
-app.get("*", (req, res) => {
+};
+const getApiNotes = async (req, res) => {
+  try {
+    const notes = await readNotes();
+    res.json(notes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error reading notes");
+  }
+};
+const getIndex = (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
-// Delete note handler
-app.delete("/api/notes/:id", async (req, res) => {
+};
+const deleteNote = async (req, res) => {
   const noteId = req.params.id;
   try {
     const data = await fsp.readFile(dbFile);
     let notes = JSON.parse(data);
-    console.log(notes);
     notes = notes.filter((note) => note.id !== noteId);
-    console.log(notes);
     await writeNotes(notes);
     // const noteIndex = notes.findIndex((note) => note.id === noteId);
 
     // if (noteIndex !== -1) {
-      // notes.splice(noteIndex, 1);
-      // await writeNotes(notes);
+    // notes.splice(noteIndex, 1);
+    // await writeNotes(notes);
     // } else {
-      // res.status(404).json({ error: "Note not found" });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Error deleting note" });
+    // res.status(404).json({ error: "Note not found" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error deleting note" });
   }
   res.redirect("/api/notes");
-});
+};
 
+// To return notes from db
+app.get("/api/notes", getApiNotes);
+
+// To post a new note to db
+app.post("/api/notes", addNote);
+
+// To serve notes.html
+app.get("/notes", getNotes);
+
+// To serve index.html
+app.get("*", getIndex);
+
+// Delete note request
+app.delete("/api/notes/:id", deleteNote);
+
+// Create server
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT} `);
 });
