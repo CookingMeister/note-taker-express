@@ -47,9 +47,9 @@ const getIndex = (req, res) => {
 const addNote = async (req, res) => {
   try {
     const { title, text } = req.body;
-    if (!title || !text) {
-      return res.status(400).send("Title and content are required.");
-    }
+    !title || !text
+      ? res.status(400).send("Title and content are required.")
+      : null;
     // Generate a unique ID for the new note
     const newNote = {
       title,
@@ -89,13 +89,11 @@ const deleteNote = async (req, res) => {
     const notes = await readNotes();
     // Find note index to delete by matching id
     const noteIndex = notes.findIndex((note) => note.id === id);
-    if (noteIndex !== -1) {
-    notes.splice(noteIndex, 1); // Remove note from array
-    await writeNotes(notes); // Rewrite db.json with updated notes array
-    console.log("Note deleted successfully");
-    } else {
-    console.log("Note not found");
-    }  
+    noteIndex !== -1
+      ? (notes.splice(noteIndex, 1), // Remove note from array
+        await writeNotes(notes), // Rewrite db.json with updated notes array
+        console.log("Note deleted successfully"))
+      : console.log("Note not found");
   } catch (err) {
     // error handling
     console.error(err);
