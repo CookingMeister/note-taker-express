@@ -1,63 +1,4 @@
-// const express = require("express");
-// const fs = require("fs");
-// const path = require("path");
-
-// const app = express();
-// const PORT = 3001;
-
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.static("public"));
-
-// // To serve notes.html
-// app.get("/notes", (req, res) => {
-//   res.sendFile(path.join(__dirname, "public/notes.html"));
-// });
-
-// // To serve index.html
-// app.get('/*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public/index.html'));
-// });
-
-// // To return notes JSON data
-// app.get('/api/notes', async (req, res) => {
-//   try {
-//     const data = await fs.promises.readFile('./db/db.json', {encoding: 'utf8'});
-//     const notes = JSON.parse(data);
-//     console.log(notes);
-//     res.json(notes);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send('Error reading notes');
-//   }
-// });
-
-// // To add new note
-//   app.post("/api/notes", async (req, res) => {
-//   try {
-//     const note = req.body;
-//     note.id = Date.now().toString();
-
-//     const data = await fs.promises.readFile('./db/db.json', {encoding: 'utf8'});
-//     const notes = JSON.parse(data);
-//     notes.push(note);
-
-//     await fs.promises.writeFile('./db/db.json', JSON.stringify(notes), 'utf8');
-
-//     res.json(note);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("Error adding note");
-//   }
-// });
-
-// app.listen(PORT, () => {
-//   console.log(`Server listening on http://localhost:${PORT} `);
-// });
-
 const express = require("express");
-const fs = require("fs");
-const { get } = require("http");
 const fsp = require("fs").promises;
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
@@ -71,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Read notes from db.json file
+// Read notes from db.json
 const readNotes = async () => {
   try {
     const data = await fsp.readFile(dbFile, "utf8");
@@ -82,7 +23,7 @@ const readNotes = async () => {
   }
 };
 
-// Write notes to db.json file
+// Write notes to db
 const writeNotes = async (notes) => {
   try {
     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
@@ -93,20 +34,19 @@ const writeNotes = async (notes) => {
   }
 };
 
-// const writeNotes = async (notes) => {
-//   try {
-//     await fsp.writeFile(dbFile, JSON.stringify(notes, null, 2));
-//   } catch (err) {
-//     console.error(`Error writing ${dbFile}`, err);
-//     throw err;
-//   }
-// };
+// Serve static notes.html and index.html files
+const getNotes = (req, res) => {
+  res.sendFile(path.join(__dirname, "public/notes.html"));
+};
 
-// Route functions
+const getIndex = (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+};
+
+// Add note to db route
 const addNote = async (req, res) => {
   try {
     const { title, text } = req.body;
-
     if (!title || !text) {
       return res.status(400).send("Title and content are required.");
     }
@@ -116,7 +56,7 @@ const addNote = async (req, res) => {
       text,
       id: uuidv4(),
     };
-    // Get existing notes, add the new one, write to db.json
+    // Get existing notes, add the new one, rewrite to db.json
     const notes = await readNotes();
     notes.push(newNote);
     await writeNotes(notes);
@@ -124,15 +64,12 @@ const addNote = async (req, res) => {
   } catch (err) {
     // error handling
     console.error("Error adding note", err);
-    res.status(500).send("Error adding note");
+    res.status(500).send("Internal error adding note");
     throw err;
   }
 };
 
-const getNotes = (req, res) => {
-  res.sendFile(path.join(__dirname, "public/notes.html"));
-};
-// Read notes from db.json file
+// Read notes from db route
 const getApiNotes = async (req, res) => {
   try {
     const notes = await readNotes();
@@ -145,39 +82,34 @@ const getApiNotes = async (req, res) => {
   }
 };
 
-const getIndex = (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-};
-
+// Delete note from db route
 const deleteNote = async (req, res) => {
-  const noteId = req.params.id;
   try {
-    const data = await fsp.readFile(dbFile);
-    let notes = JSON.parse(data);
-    notes = notes.filter((note) => note.id !== noteId);
-    await writeNotes(notes);
-    // const noteIndex = notes.findIndex((note) => note.id === noteId);
-
-    // if (noteIndex !== -1) {
-    // notes.splice(noteIndex, 1);
-    // await writeNotes(notes);
-    // } else {
-    // res.status(404).json({ error: "Note not found" });
+    const id = req.params.id; // Grab id from params
+    const notes = await readNotes();
+    // Find note index to delete by matching id
+    const noteIndex = notes.findIndex((note) => note.id === id);
+    if (noteIndex !== -1) {
+    notes.splice(noteIndex, 1); // Remove note from array
+    await writeNotes(notes); // Rewrite db.json with updated notes array
     console.log("Note deleted successfully");
+    } else {
+    console.log("Note not found");
+    }  
   } catch (err) {
     // error handling
     console.error(err);
     res.status(500).send("Error deleting note");
     throw err;
   }
-  res.redirect("/api/notes");
+  res.redirect("/notes");
 };
 
 app.get("/notes", getNotes); // GET notes
 
 app.get("/api/notes", getApiNotes); // GET API notes
 
-app.post("/api/notes", addNote); // POST new note
+app.post("/api/notes", addNote); // POST note
 
 app.delete("/api/notes/:id", deleteNote); // DELETE note by id
 
