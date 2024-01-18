@@ -1,4 +1,3 @@
-const express = require("express");
 const fsp = require("fs").promises;
 const dbFile = "./db/db.json";
 

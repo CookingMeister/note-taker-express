@@ -1,9 +1,7 @@
 const express = require("express");
-const fsp = require("fs").promises;
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { readNotes, writeNotes } = require("./utils/read-write.js");
-const dbFile = "./db/db.json";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
