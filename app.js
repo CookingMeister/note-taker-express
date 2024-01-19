@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const {
   getIndex,
   getNotes,
@@ -8,8 +7,9 @@ const {
   deleteNote,
 } = require("./routes/routes.js");
 
-const app = express();
 const PORT = process.env.PORT || 3000;
+
+const app = express();
 
 // Middleware
 app.use(express.json());
@@ -32,6 +32,5 @@ app.listen(PORT, () => {
 
 module.exports = {
   getNotes,
-  getIndex,
-  app,
+  getIndex
 };
