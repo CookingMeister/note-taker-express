@@ -1,12 +1,29 @@
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 const { readNotes, writeNotes } = require("../utils/read-write.js");
+const path = require('path');
+// path to public from routes.js
+const publicPath = path.join(__dirname, '../public'); 
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static notes.html route
+const getNotes = (req, res) => {
+  try {
+    res.sendFile(publicPath + "/notes.html");
+  } catch (err) {
+    console.error(err);
+    res.status(404).send("File not found");
+  }
+};
+// Serve static index.html route
+const getIndex = (req, res) => {
+  res.sendFile(publicPath + "/index.html");
+};
 
 // Add note to db.json route
 const addNote = async (req, res) => {
@@ -69,6 +86,8 @@ const deleteNote = async (req, res) => {
 };
 
 module.exports = {
+  getIndex,
+  getNotes,
   addNote,
   getApiNotes,
   deleteNote
