@@ -1,16 +1,5 @@
-let app;
-
-beforeAll(() => {
-  app = require("../app");
-});
-
-afterAll(() => {
-  app.close();
-});
-
-const { getNotes } = require("../app.js");
-const path = require("path");
-
+const { getNotes, getIndex } = require("../routes/routes.js");
+// test notes.html route
 describe("getNotes", () => {
   test("responds with notes.html", async () => {
     const req = {};
@@ -24,19 +13,19 @@ describe("getNotes", () => {
       expect.stringContaining("notes.html")
     );
   });
-
-  test("sends 404 if path does not exist", async () => {
+});
+// test index,html route
+describe("getIndex", () => {
+  test("responds with index.html", async () => {
     const req = {};
     const res = {
-      status: jest.fn(() => res),
-      send: jest.fn(),
+      sendFile: jest.fn(),
     };
 
-    jest.spyOn(path, "join").mockReturnValueOnce("invalid-path");
+    await getIndex(req, res);
 
-    await getNotes(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalledWith("File not found");
+    expect(res.sendFile).toHaveBeenCalledWith(
+      expect.stringContaining("index.html")
+    );
   });
 });
