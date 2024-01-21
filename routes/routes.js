@@ -1,9 +1,11 @@
 const express = require("express");
+const fs = require("fs");
+const dbFile = "./db/db.json";
 const { v4: uuidv4 } = require("uuid");
 const { readNotes, writeNotes } = require("../utils/read-write.js");
-const path = require('path');
+const path = require("path");
 // path to public from routes.js
-const publicPath = path.join(__dirname, '../public'); 
+const publicPath = path.join(__dirname, "../public");
 
 const app = express();
 
@@ -65,24 +67,56 @@ const getApiNotes = async (req, res) => {
 };
 
 // Delete note from db route
-const deleteNote = async (req, res) => {
-  try {
-    const id = req.params.id; // Grab id from params
-    const notes = await readNotes();
-    // Find note index to delete by matching id
+// const deleteNote = (req, res) => {
+//   try {
+//     const id = req.params.id; // Grab id from params
+//     // const notes = readNotes();
+//     let notes = fs.readFileSync(dbFile, 'utf8');
+//     notes = JSON.parse(notes);
+//     // Find note index to delete by matching id
+//     const noteIndex = notes.findIndex((note) => note.id === id);
+//     noteIndex !== -1
+//       ? (notes.splice(noteIndex, 1), // Remove note from array
+//         // writeNotes(notes), // Rewrite db.json with updated array
+//         fs.writeFileSync(dbFile, JSON.stringify(notes), 'utf8'),
+//         console.log("Note deleted successfully"))
+//       : console.log("Note not found");
+//   } catch (err) {
+//     // error handling
+//     console.error(err);
+//     res.status(500).send("Error deleting note");
+//     throw err;
+//   }
+//   res.redirect("/api/notes");
+// };
+const deleteNote = (req, res) => {
+  const id = req.params.id; // grab id from params
+
+  fs.readFile(dbFile, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error reading file");
+    }
+
+    const notes = JSON.parse(data);
     const noteIndex = notes.findIndex((note) => note.id === id);
-    noteIndex !== -1
-      ? (notes.splice(noteIndex, 1), // Remove note from array
-        await writeNotes(notes), // Rewrite db.json with updated array
-        console.log("Note deleted successfully"))
-      : console.log("Note not found");
-  } catch (err) {
-    // error handling
-    console.error(err);
-    res.status(500).send("Error deleting note");
-    throw err;
-  }
-  res.redirect("/api/notes");
+
+    if (noteIndex > -1) {
+      notes.splice(noteIndex, 1); // delete note from notes array
+      console.log("Note deleted successfully");
+      // rewrite db file
+      fs.writeFile(dbFile, JSON.stringify(notes, null, 2), (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send("Error writing file");
+        }
+
+        res.sendStatus(200);
+      });
+    } else {
+      res.status(404).send("Note not found");
+    }
+  });
 };
 
 module.exports = {
@@ -90,5 +124,5 @@ module.exports = {
   getNotes,
   addNote,
   getApiNotes,
-  deleteNote
+  deleteNote,
 };
