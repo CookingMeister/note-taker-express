@@ -1,10 +1,9 @@
 const express = require("express");
 const fs = require("fs");
-const dbFile = "./db/db.json";
 const { v4: uuidv4 } = require("uuid");
 const { readNotes, writeNotes } = require("../utils/read-write.js");
+const dbFile = "./db/db.json";
 const path = require("path");
-// path to public from routes.js
 const publicPath = path.join(__dirname, "../public");
 
 const app = express();
@@ -25,7 +24,12 @@ const getNotes = (req, res) => {
 
 // Serve static index.html route
 const getIndex = (req, res) => {
-  res.sendFile(publicPath + "/index.html");
+  try {
+    res.sendFile(publicPath + "/index.html");
+  } catch (err) {
+    console.error(err);
+    res.status(404).send("File not found");
+  }
 };
 
 // Add note to db.json route

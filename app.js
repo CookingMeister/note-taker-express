@@ -23,7 +23,7 @@ app
   .get(getApiNotes) // GET API notes
   .post(addNote); // POST note
 app.delete("/api/notes/:id", deleteNote); // DELETE note by id
-app.get("/*", getIndex); // GET catch-all route at end to avoid conflicts
+app.get("/*", getIndex); // GET index catch-all route at end to avoid conflicts
 
 // Create server
 app.listen(PORT, () => {
