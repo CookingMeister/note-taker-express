@@ -17,7 +17,10 @@ Use to create, edit, save and delete notes on a web app where data is stored loc
 ## Mock-up
 
 The following shows the appearance and basic functionality of the app:
-![Note Taker demo](./public/assets/demo.png)
+
+![Note Taker demo](./public/assets/img/demo.png)
+
+A link to the deployed application can be found [here.](https://example.com)
 
 ## Credits
 
