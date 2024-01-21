@@ -4,7 +4,7 @@
 
 ## Description
 
-A simple web note app using Node and Express: read, write, edit and delete notes. Each note has a generated unique ID using UUIDv4. Note data persists in a JSON file, which, including routes, are  hosted on a local server using Express.js.
+A simple web note app using Node and Express: read, write, edit and delete notes. Each note has a generated unique ID using UUIDv4. Note data persists in a JSON file which, including routes, are  hosted on a local server using Express.js.
 
 ## Installation
 
@@ -14,9 +14,14 @@ Download files or clone repository. Run `npm install` to install dependancies. R
 
 Use to create, edit, save and delete notes on a web app where data is stored locally in a JSON file for future use.
 
+## Mock-up
+
+The following shows the appearance and basic functionality of the app:
+![Note Taker demo](./public/assets/demo.png)
+
 ## Credits
 
-This app was created by CookingMeister. Starter source code such as static files for index and notes.html, as well as styling and JS, were provided by [edX](https://github.com/coding-boot-camp/miniature-eureka). W3Schools and MDN Webdocs were referenced for express best practices. Youtube channel [procademy](https://www.youtube.com/watch?v=00NNuZHF56A&list=PL1BztTYDF-QPdTvgsjf8HOwO4ZVl_LhxS&index=38&t=824s) was referenced for delete routes and code refactoring.
+Starter source code including static html files, CSS styling and JS functionality were provided by [edX](https://github.com/coding-boot-camp/miniature-eureka). W3Schools and MDN Webdocs were referenced for express best practices. Youtube channel [procademy](https://www.youtube.com/watch?v=00NNuZHF56A&list=PL1BztTYDF-QPdTvgsjf8HOwO4ZVl_LhxS&index=38&t=824s) was referenced for delete routes and code refactoring.
 
 ## Tests
 
