@@ -22,6 +22,7 @@ const getNotes = (req, res) => {
     res.status(404).send("File not found");
   }
 };
+
 // Serve static index.html route
 const getIndex = (req, res) => {
   res.sendFile(publicPath + "/index.html");
@@ -40,10 +41,10 @@ const addNote = async (req, res) => {
       text,
       id: uuidv4(),
     };
-    // Get existing notes, add the new one, rewrite to db.json
+    // Get existing notes from db
     const notes = await readNotes();
-    notes.push(newNote);
-    await writeNotes(notes);
+    notes.push(newNote); // add new note
+    await writeNotes(notes); // rewrite db
     res.json(newNote);
   } catch (err) {
     // error handling
@@ -67,57 +68,33 @@ const getApiNotes = async (req, res) => {
 };
 
 // Delete note from db route
-// const deleteNote = (req, res) => {
-//   try {
-//     const id = req.params.id; // Grab id from params
-//     // const notes = readNotes();
-//     let notes = fs.readFileSync(dbFile, 'utf8');
-//     notes = JSON.parse(notes);
-//     // Find note index to delete by matching id
-//     const noteIndex = notes.findIndex((note) => note.id === id);
-//     noteIndex !== -1
-//       ? (notes.splice(noteIndex, 1), // Remove note from array
-//         // writeNotes(notes), // Rewrite db.json with updated array
-//         fs.writeFileSync(dbFile, JSON.stringify(notes), 'utf8'),
-//         console.log("Note deleted successfully"))
-//       : console.log("Note not found");
-//   } catch (err) {
-//     // error handling
-//     console.error(err);
-//     res.status(500).send("Error deleting note");
-//     throw err;
-//   }
-//   res.redirect("/api/notes");
-// };
 const deleteNote = (req, res) => {
   const id = req.params.id; // grab id from params
 
   fs.readFile(dbFile, "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send("Error reading file");
-    }
+    err // error handling
+    ? (console.error(err), res.status(500).send("Error reading file"))
+    : null
 
     const notes = JSON.parse(data);
     const noteIndex = notes.findIndex((note) => note.id === id);
 
-    if (noteIndex > -1) {
-      notes.splice(noteIndex, 1); // delete note from notes array
-      console.log("Note deleted successfully");
-      // rewrite db file
-      fs.writeFile(dbFile, JSON.stringify(notes, null, 2), (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).send("Error writing file");
-        }
-
-        res.sendStatus(200);
-      });
-    } else {
-      res.status(404).send("Note not found");
-    }
+    noteIndex !== -1
+    ? (notes.splice(noteIndex, 1), // delete note from notes array
+        console.log("Note deleted successfully"),
+        // rewrite db file
+        fs.writeFile(dbFile, JSON.stringify(notes, null, 2), (err) =>  
+          err ? // error handling
+            (console.error(err), res.status(500).send("Error writing file")) 
+          :
+            res.sendStatus(200)
+        )
+      ) 
+    : 
+      res.status(404).send("Note not found")
   });
 };
+
 
 module.exports = {
   getIndex,
